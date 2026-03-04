@@ -1,0 +1,657 @@
+/* ============================================
+   FDA Drug Approval Timeline — Dark Observatory
+   ============================================ */
+
+:root {
+    --bg-deep: #0a1628;
+    --bg-panel: #0e1d33;
+    --bg-card: #12243d;
+    --bg-hover: #182c4a;
+    --border: rgba(0, 212, 255, 0.08);
+    --border-active: rgba(0, 212, 255, 0.25);
+
+    --cyan: #00d4ff;
+    --cyan-dim: rgba(0, 212, 255, 0.15);
+    --amber: #ff9f43;
+    --coral: #ff6b6b;
+
+    --text-primary: #e8edf5;
+    --text-secondary: #8a9bb5;
+    --text-muted: #556580;
+
+    --font-display: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --sidebar-width: 320px;
+    --radius: 6px;
+    --transition: 0.2s ease;
+}
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--font-mono);
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    display: flex;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Atmospheric background gradient */
+.main-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0, 212, 255, 0.03) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(255, 159, 67, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* ============ SIDEBAR ============ */
+
+.sidebar {
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    z-index: 10;
+}
+
+.sidebar-inner {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px 16px;
+    flex: 1;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.logo-mark {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.site-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.site-subtitle {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.02em;
+}
+
+/* ---- Search ---- */
+.search-container {
+    position: relative;
+    margin-bottom: 14px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 10px 8px 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    outline: none;
+    transition: border-color var(--transition);
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.search-input:focus {
+    border-color: var(--border-active);
+}
+
+/* ---- View Toggle ---- */
+.view-toggle {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 3px;
+}
+
+.view-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 8px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.view-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.view-btn.active {
+    background: var(--cyan-dim);
+    color: var(--cyan);
+}
+
+/* ---- Stats ---- */
+.stats-section {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.section-label {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.stat-value {
+    color: var(--cyan);
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* Decade table */
+.decade-table {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.decade-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: rgba(0, 212, 255, 0.03);
+}
+
+.decade-row .decade-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.decade-row .decade-value {
+    font-weight: 600;
+    font-size: 11px;
+}
+
+.decade-row .decade-bar {
+    flex: 1;
+    height: 3px;
+    margin: 0 10px;
+    background: var(--bg-deep);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.decade-row .decade-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--cyan);
+    transition: width 0.5s ease;
+}
+
+/* ---- Filters ---- */
+.filter-label {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+    margin-top: 10px;
+}
+
+.filter-label:first-child {
+    margin-top: 0;
+}
+
+.decade-filters, .review-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.decade-btn, .review-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.decade-btn:hover, .review-btn:hover {
+    border-color: var(--border-active);
+    color: var(--text-primary);
+}
+
+.decade-btn.active, .review-btn.active {
+    background: var(--cyan-dim);
+    border-color: var(--cyan);
+    color: var(--cyan);
+}
+
+/* Toggle switch */
+.toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    transition: var(--transition);
+}
+
+.toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 12px;
+    width: 12px;
+    left: 2px;
+    bottom: 2px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--cyan-dim);
+    border-color: var(--cyan);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(14px);
+    background: var(--cyan);
+}
+
+.toggle-label {
+    color: var(--text-secondary);
+    font-size: 10.5px;
+}
+
+/* Category filter chips */
+.category-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.cat-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.cat-chip:hover {
+    border-color: var(--border-active);
+}
+
+.cat-chip.active {
+    border-color: var(--cyan);
+    color: var(--text-primary);
+}
+
+.cat-chip .cat-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.cat-chip.active .cat-dot {
+    box-shadow: 0 0 4px currentColor;
+}
+
+/* Records lists */
+.records-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.record-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 10.5px;
+    background: rgba(0, 212, 255, 0.02);
+}
+
+.record-item .rec-name {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.record-item .rec-year {
+    color: var(--text-muted);
+    font-size: 9.5px;
+    margin-left: 4px;
+}
+
+.record-item .rec-months {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.record-item.fastest .rec-months {
+    color: var(--cyan);
+}
+
+.record-item.slowest .rec-months {
+    color: var(--coral);
+}
+
+/* Category breakdown */
+.category-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cat-break-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 0;
+    font-size: 10.5px;
+}
+
+.cat-break-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.cat-break-name {
+    flex: 1;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cat-break-count {
+    color: var(--text-primary);
+    font-weight: 600;
+    min-width: 32px;
+    text-align: right;
+}
+
+/* Footer */
+.sidebar-footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+}
+
+.sidebar-footer p {
+    font-size: 9px;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* ============ MAIN CONTENT ============ */
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-deep);
+}
+
+.chart-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.plot-area {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* Legend bar */
+.legend-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 8px 20px;
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    justify-content: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: all var(--transition);
+    user-select: none;
+}
+
+.legend-item:hover {
+    background: var(--bg-hover);
+}
+
+.legend-item.dimmed {
+    opacity: 0.3;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ============ LOADING ============ */
+
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: opacity 0.4s ease;
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    text-align: center;
+}
+
+.spinner-ring {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ============ RESPONSIVE ============ */
+
+@media (max-width: 1024px) {
+    :root {
+        --sidebar-width: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        max-height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .main-content {
+        height: 60vh;
+    }
+}
+
+/* Plotly overrides */
+.js-plotly-plot .plotly .modebar {
+    top: 8px !important;
+    right: 8px !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn path {
+    fill: var(--text-muted) !important;
+}
+
+.js-plotly-plot .plotly .modebar-btn:hover path {
+    fill: var(--cyan) !important;
+}
